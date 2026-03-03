@@ -1,0 +1,12 @@
+{%- comment -%}
+    Renders the meta tags for a page.
+
+    Usage:
+    {% render 'meta-tags' %}
+{%- endcomment -%}
+
+{%- if page_description -%}
+  <meta name="description" content="{{ page_description | escape }}">
+{%- endif -%}
+
+{%- render 'social-meta-tags' -%}

@@ -1,0 +1,158 @@
+{%- comment -%}
+  Quick Add Drawer Snippet
+  Displays a slide-out drawer for selecting product variants and adding to cart
+{%- endcomment -%}
+
+<div class="quick-add-drawer" id="QuickAddDrawer-{{ product.id }}" aria-hidden="true">
+  <div class="quick-add-drawer__overlay" data-drawer-close></div>
+  
+  <div class="quick-add-drawer__content" tabindex="-1">
+    <div class="quick-add-drawer__header">
+      <h2 class="quick-add-drawer__title">{{ product.title }}</h2>
+      <button 
+        type="button" 
+        class="quick-add-drawer__close" 
+        aria-label="{{ 'accessibility.close' | t }}"
+        data-drawer-close
+      >
+        {% render 'icon-close' %}
+      </button>
+    </div>
+    
+    <div class="quick-add-drawer__body">
+      <div class="quick-add-drawer__product-image">
+        {%- if product.featured_image -%}
+          <img 
+            src="{{ product.featured_image | img_url: '300x' }}" 
+            alt="{{ product.featured_image.alt | escape }}"
+            loading="lazy"
+            width="{{ product.featured_image.width }}"
+            height="{{ product.featured_image.height }}"
+          >
+        {%- endif -%}
+      </div>
+      
+      <div class="quick-add-drawer__product-info">
+        <div class="quick-add-drawer__price">
+          {%- if product.compare_at_price > product.price -%}
+            <span class="quick-add-drawer__price--compare">{{ product.compare_at_price | money }}</span>
+            <span class="quick-add-drawer__price--sale">{{ product.price | money }}</span>
+          {%- else -%}
+            <span class="quick-add-drawer__price--regular">{{ product.price | money }}</span>
+          {%- endif -%}
+        </div>
+        
+        {%- if product.description -%}
+          <div class="quick-add-drawer__description">
+            {{ product.description | strip_html | truncatewords: 20 }}
+          </div>
+        {%- endif -%}
+        
+        <div class="quick-add-drawer__variants">
+          {%- form 'product', product, id: "QuickAddForm-#{product.id}" -%}
+            <input type="hidden" name="id" value="{{ product.first_available_variant.id }}" data-variant-input>
+            
+            {%- unless product.has_only_default_variant -%}
+              {%- for option in product.options_with_values -%}
+                <div class="quick-add-drawer__option">
+                  <label class="quick-add-drawer__option-label">{{ option.name }}</label>
+                  
+                  {%- if option.name == 'Color' -%}
+                    <div class="quick-add-drawer__color-swatches">
+                      {%- for value in option.values -%}
+                        {%- assign variant = product.variants | where: option.name, value | first -%}
+                        {%- if variant -%}
+                          <button 
+                            type="button" 
+                            class="quick-add-drawer__color-swatch {% if variant.available == false %}quick-add-drawer__color-swatch--unavailable{% endif %} {% if forloop.first %}selected{% endif %}"
+                            style="background-color: {{ value | downcase | replace: ' ', '' }};"
+                            data-value="{{ value }}"
+                            data-variant-id="{{ variant.id }}"
+                            title="{{ value }}"
+                            aria-label="{{ value }}"
+                          ></button>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </div>
+                  {%- elsif option.name == 'Size' -%}
+                    <div class="quick-add-drawer__size-options">
+                      {%- for value in option.values -%}
+                        {%- assign variant = product.variants | where: option.name, value | first -%}
+                        {%- if variant -%}
+                          <button 
+                            type="button" 
+                            class="quick-add-drawer__size-option {% if variant.available == false %}quick-add-drawer__size-option--unavailable{% endif %} {% if forloop.first %}selected{% endif %}"
+                            data-value="{{ value }}"
+                            data-variant-id="{{ variant.id }}"
+                          >
+                            {{ value }}
+                          </button>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </div>
+                  {%- else -%}
+                    <select 
+                      class="quick-add-drawer__select" 
+                      name="{{ option.name }}"
+                      data-option-index="{{ forloop.index0 }}"
+                    >
+                      {%- for value in option.values -%}
+                        {%- assign variant = product.variants | where: option.name, value | first -%}
+                        <option 
+                          value="{{ value }}" 
+                          {% if variant.available == false %}disabled{% endif %}
+                          {% if forloop.first %}selected{% endif %}
+                        >
+                          {{ value }}
+                          {%- if variant.available == false %} - {{ 'products.product.sold_out' | t }}{%- endif -%}
+                        </option>
+                      {%- endfor -%}
+                    </select>
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+            {%- endunless -%}
+            
+            <div class="quick-add-drawer__quantity">
+              <label class="quick-add-drawer__quantity-label" for="Quantity-{{ product.id }}">
+                {{ 'products.product.quantity' | t }}
+              </label>
+              <div class="quick-add-drawer__quantity-input">
+                <button type="button" class="quantity__button" name="minus" aria-label="{{ 'accessibility.decrease_quantity' | t }}">
+                  {% render 'icon-minus' %}
+                </button>
+                <input 
+                  type="number" 
+                  name="quantity" 
+                  id="Quantity-{{ product.id }}"
+                  class="quantity__input" 
+                  value="1" 
+                  min="1"
+                  aria-label="{{ 'accessibility.quantity' | t }}"
+                >
+                <button type="button" class="quantity__button" name="plus" aria-label="{{ 'accessibility.increase_quantity' | t }}">
+                  {% render 'icon-plus' %}
+                </button>
+              </div>
+            </div>
+            
+            <div class="quick-add-drawer__add-to-cart-wrapper">
+              <button 
+                type="submit" 
+                name="add" 
+                class="quick-add-drawer__add-to-cart btn btn--primary {% unless product.available %}btn--disabled{% endunless %}"
+                {% unless product.available %}disabled{% endunless %}
+              >
+                {%- if product.available -%}
+                  {{ 'products.product.add_to_cart' | t }}
+                {%- else -%}
+                  {{ 'products.product.sold_out' | t }}
+                {%- endif -%}
+              </button>
+            </div>
+          {%- endform -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="{{ settings.color_primary }}">
+    
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+    
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | img_url: '32x32' }}">
+    {%- endif -%}
+    
+    {%- capture seo_title -%}
+      {%- if request.page_type == 'search' and search.performed -%}
+        {{ 'general.search.heading' | t: count: search.results_count }}: {{ 'general.search.results_with_count' | t: terms: search.terms, count: search.results_count }}
+      {%- else -%}
+        {{ page_title }}
+      {%- endif -%}
+      {%- if current_tags -%}
+        {%- assign meta_tags = current_tags | join: ', ' -%}
+        &ndash; {{ 'general.meta.tags' | t: tags: meta_tags -}}
+      {%- endif -%}
+      {%- if current_page != 1 -%}
+        &ndash; {{ 'general.meta.page' | t: page: current_page }}
+      {%- endif -%}
+      {%- assign escaped_page_title = page_title | escape -%}
+      {%- unless escaped_page_title contains shop.name -%}
+        &ndash; {{ shop.name }}
+      {%- endunless -%}
+    {%- endcapture -%}
+    <title>{{ seo_title | strip }}</title>
+    
+    {%- if page_description -%}
+      <meta name="description" content="{{ page_description | escape }}">
+    {%- endif -%}
+    
+    {% render 'meta-tags' %}
+    
+    {{ content_for_header }}
+    
+    {% style %}
+      :root {
+        --color-primary: {{ settings.color_primary }};
+        --color-secondary: {{ settings.color_secondary }};
+        --color-accent: {{ settings.color_accent }};
+        --color-border: {{ settings.color_border }};
+        --color-text: {{ settings.color_text }};
+        --color-text-light: {{ settings.color_text_light }};
+        --color-sale: {{ settings.color_sale }};
+        --color-sold-out: {{ settings.color_sold_out }};
+        
+        --font-family-primary: {{ settings.font_family_primary.family }}, {{ settings.font_family_primary.fallback_families }};
+        --font-size-base: {{ settings.font_size_base }}px;
+        --font-size-heading: {{ settings.font_size_heading }}px;
+        --font-size-product-title: {{ settings.font_size_base | minus: 2 }}px;
+        --font-size-price: {{ settings.font_size_base | minus: 4 }}px;
+        
+        --spacing-unit: {{ settings.spacing_unit }}px;
+        --spacing-small: calc(var(--spacing-unit) * 1);
+        --spacing-medium: calc(var(--spacing-unit) * 2);
+        --spacing-large: calc(var(--spacing-unit) * 3);
+        --spacing-xlarge: calc(var(--spacing-unit) * 4);
+        
+        --border-radius-small: {{ settings.border_radius }}px;
+        --border-radius-medium: calc({{ settings.border_radius }}px * 2);
+        
+        --transition-fast: 0.2s ease;
+        --transition-medium: 0.3s ease;
+      }
+      
+      * {
+        box-sizing: border-box;
+      }
+      
+      html {
+        font-size: var(--font-size-base);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      body {
+        margin: 0;
+        font-family: var(--font-family-primary);
+        color: var(--color-text);
+        background-color: var(--color-secondary);
+      }
+      
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+      
+      .page-width {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      
+      @media screen and (min-width: 750px) {
+        .page-width {
+          padding: 0 40px;
+        }
+      }
+      
+      .section-{{ section.id }}-padding {
+        padding-top: {{ section.settings.padding_top }}px;
+        padding-bottom: {{ section.settings.padding_bottom }}px;
+      }
+      
+      @media screen and (min-width: 750px) {
+        .section-{{ section.id }}-padding {
+          padding-top: {{ section.settings.padding_top }}px;
+          padding-bottom: {{ section.settings.padding_bottom }}px;
+        }
+      }
+      
+      .btn {
+        display: inline-block;
+        padding: 10px 16px;
+        font-family: var(--font-family-primary);
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        border: none;
+        border-radius: var(--border-radius-small);
+        cursor: pointer;
+        transition: background-color var(--transition-fast), color var(--transition-fast);
+      }
+      
+      .btn--primary {
+        background-color: var(--color-primary);
+        color: var(--color-secondary);
+      }
+      
+      .btn--primary:hover {
+        background-color: #333333;
+      }
+      
+      .btn--secondary {
+        background-color: transparent;
+        color: var(--color-primary);
+        border: 1px solid var(--color-border);
+      }
+      
+      .btn--secondary:hover {
+        background-color: var(--color-accent);
+      }
+      
+      .btn--disabled {
+        background-color: var(--color-sold-out);
+        color: var(--color-secondary);
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+    {% endstyle %}
+    
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+    {{ 'section-featured-collection.css' | asset_url | stylesheet_tag }}
+    
+    <script>
+      document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+      if (Shopify.designMode) {
+        document.documentElement.classList.add('shopify-design-mode');
+      }
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-to-content-link button visually-hidden" href="#MainContent">
+      {{ "accessibility.skip_to_text" | t }}
+    </a>
+
+    <div id="shopify-section-header" class="shopify-section">
+      <header class="header">
+        <div class="page-width">
+          <div class="header__inner">
+            <div class="header__logo">
+              <a href="{{ routes.root_url }}" class="header__logo-link">
+                {%- if settings.logo != blank -%}
+                  {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+                  {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
+                  {{
+                    settings.logo
+                    | image_url: width: 500
+                    | image_tag:
+                      widths: '50, 100, 150, 200, 250, 300, 400, 500',
+                      height: logo_height,
+                      width: settings.logo_width,
+                      alt: logo_alt,
+                      class: 'header__logo-image',
+                      preload: true
+                  }}
+                {%- else -%}
+                  <span class="h2">{{ shop.name }}</span>
+                {%- endif -%}
+              </a>
+            </div>
+            
+            <div class="header__icons">
+              <a href="{{ routes.cart_url }}" class="header__icon header__icon--cart">
+                {% render 'icon-cart' %}
+                <span class="visually-hidden">{{ 'templates.cart.cart' | t }}</span>
+                {%- if cart != empty -%}
+                  <div class="cart-count-bubble">
+                    {%- if cart.item_count < 100 -%}
+                      <span aria-hidden="true">{{ cart.item_count }}</span>
+                    {%- endif -%}
+                    <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+                  </div>
+                {%- endif -%}
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+    </div>
+
+    <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    <footer>
+      <div class="page-width">
+        <div class="footer__content">
+          <p>&copy; {{ 'now' | date: '%Y' }}, {{ shop.name | link_to: routes.root_url }}</p>
+        </div>
+      </div>
+    </footer>
+
+    <ul hidden>
+      <li id="a11y-refresh-page-message">{{ 'accessibility.refresh_page' | t }}</li>
+    </ul>
+
+    <script>
+      window.routes = {
+        cart_add_url: '{{ routes.cart_add_url }}',
+        cart_change_url: '{{ routes.cart_change_url }}',
+        cart_update_url: '{{ routes.cart_update_url }}',
+        cart_url: '{{ routes.cart_url }}',
+        predictive_search_url: '{{ routes.predictive_search_url }}'
+      };
+
+      window.cartStrings = {
+        error: `{{ 'sections.cart.cart_error' | t }}`,
+        quantityError: `{{ 'sections.cart.cart_quantity_error_html' | t: quantity: '[quantity]' }}`
+      }
+
+      window.variantStrings = {
+        addToCart: `{{ 'products.product.add_to_cart' | t }}`,
+        soldOut: `{{ 'products.product.sold_out' | t }}`,
+        unavailable: `{{ 'products.product.unavailable' | t }}`
+      }
+
+      window.accessibilityStrings = {
+        imageAvailable: `{{ 'products.product.media.image_available' | t: index: '[index]' }}`,
+        shareSuccess: `{{ 'general.share.success_message' | t }}`,
+        pauseSlideshow: `{{ 'sections.slideshow.pause_slideshow' | t }}`,
+        playSlideshow: `{{ 'sections.slideshow.play_slideshow' | t }}`
+      }
+    </script>
+    
+    <script src="{{ 'quick-add.js' | asset_url }}" defer="defer"></script>
+  </body>
+</html>

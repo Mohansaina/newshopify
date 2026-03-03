@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "featured-collection": {
+      "type": "featured-collection",
+      "settings": {
+        "title": "Featured Collection",
+        "collection": "",
+        "products_to_show": 8,
+        "show_view_all": true
+      }
+    }
+  },
+  "order": [
+    "featured-collection"
+  ]
+}
